@@ -7,7 +7,7 @@ You should also install CDVNavBar plugin to work properly.
 
 ## Installation
 
-    cordova plugin add https://github.com/Emadello/cordova-plugin-CDVTabBar.git
+    cordova plugin add cordova-plugin-cdvtabbar
 
 
 ### Supported Platforms
