@@ -1,0 +1,22 @@
+{
+  "name": "cordova-plugin-CDVTabBar",
+  "version": "1.0.0",
+  "description": "Add TabBar to your Cordova Applications",
+  "cordova": {
+    "id": "cordova-plugin-CDVTabBar",
+    "platforms": [
+      "ios"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Emadello/cordova-plugin-CDVTabBar.git"
+  },
+  "keywords": [
+    "cordova",
+    "tabbar",
+    "cordova-ios"
+  ],
+  "author": "Lifetime.com.eg",
+  "license": "MIT"
+}
