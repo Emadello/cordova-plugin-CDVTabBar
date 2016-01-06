@@ -13,6 +13,7 @@
     "url": "git+https://github.com/Emadello/cordova-plugin-CDVTabBar.git"
   },
   "keywords": [
+	"ecosystem:cordova",
     "cordova",
     "tabbar",
     "cordova-ios"
