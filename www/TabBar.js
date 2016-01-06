@@ -1,27 +1,27 @@
-cordova.define("com.Lifetime.nativecontrols.TabBar", function(require, exports, module) {
-               
+cordova.define("cordova-plugin-CDVTabBar.TabBar", function(require, exports, module) {
+
                var exec = require('cordova/exec');
                var platform = require('cordova/platform');
-               
+
                this.tag = 0;
                this.callbacks = {};
                this.selectedItem = null;
-               
+
                module.exports = {
-               
+
                create: function(style, options) {
                options = options || {};
                if(!("style" in options))
                options.style = style || "Default";
                exec(null, null, "TabBar", "create", [style, options]);
-               
+
                },
                show: function(style, options) {
                options = options || {};
                if(!("style" in options))
                options.style = style || "Default";
                exec(null, null, "TabBar", "show", [style, options]);
-               
+
                },
                getSelectedItem: function() {
                return this.selectedItem;
@@ -48,9 +48,9 @@ cordova.define("com.Lifetime.nativecontrols.TabBar", function(require, exports, 
                if (options && 'onSelect' in options && typeof(options['onSelect']) == 'function') {
                callbacks[tag] = {'onSelect':options.onSelect,'name':name};
                }
-               
+
                exec(null, null, "TabBar", "createItem", [name, label, image, tag, options]);
-               
+
                },
                showItems: function() {
                //exec.apply(this, parameters);
@@ -59,7 +59,7 @@ cordova.define("com.Lifetime.nativecontrols.TabBar", function(require, exports, 
                parameters.push(arguments[i]);
                }
                exec(null, null, "TabBar", "showItems", [parameters]);
-               
+
                },
                onItemSelected: function(tag) {
                if (typeof(callbacks[tag].onSelect) == 'function')
@@ -69,11 +69,11 @@ cordova.define("com.Lifetime.nativecontrols.TabBar", function(require, exports, 
                if (!options) options = {};
                exec(null, null, "TabBar", "updateItem", [name, options]);
                }
-               
-               
+
+
                }
-               
-               
+
+
 });
 
 
