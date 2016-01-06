@@ -1,4 +1,3 @@
-cordova.define("cordova-plugin-CDVTabBar.TabBar", function(require, exports, module) {
 
                var exec = require('cordova/exec');
                var platform = require('cordova/platform');
@@ -72,9 +71,6 @@ cordova.define("cordova-plugin-CDVTabBar.TabBar", function(require, exports, mod
 
 
                }
-
-
-});
 
 
 
