@@ -72,38 +72,6 @@
 
                }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-    This code is adapted from the work of:
-    Created by Michael Nachbaur on 13/04/09.
-    Copyright 2009 Decaf Ninja Software. All rights reserved.
-    MIT licensed
-
-    API cleaned up and improved by Andreas Sommer (https://github.com/AndiDog/phonegap-ios-tabbar-plugin).
-*/
-
 function TabBar() {
     this.tag = 0;
     this.callbacks = {};

@@ -1,16 +1,10 @@
-/*
- TabBar.m
- 
- Created by Jesse MacFadyen on 10-02-03.
- MIT Licensed
- 
- Originally this code was developed my Michael Nachbaur
- Formerly -> PhoneGap :: UIControls.h
- Created by Michael Nachbaur on 13/04/09.
- Copyright 2009 Decaf Ninja Software. All rights reserved.
- 
- API cleaned up and improved by Andreas Sommer (https://github.com/AndiDog/phonegap-ios-tabbar-plugin).
- */
+//
+//  TabBar.m
+//  Cordova Plugin
+//
+//  Created by Lifetime.com.eg Technical Team (Amr Hossam / Emad ElShafie) on 6 January 2016.
+//  Copyright (c) 2016 Lifetime.com.eg. All rights reserved.
+//
 
 #import <objc/runtime.h>
 #import "TabBar.h"
