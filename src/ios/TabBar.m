@@ -11,66 +11,62 @@
 #import <UIKit/UINavigationBar.h>
 #import <QuartzCore/QuartzCore.h>
 
-// For older versions of Cordova, you may have to use: #import "CDVDebug.h"
-#import <Cordova/CDVDebug.h>
-
 @implementation TabBar
 #ifndef __IPHONE_3_0
 @synthesize webView;
 #endif
 
--(CDVPlugin*) initWithWebView:(UIWebView*)theWebView
-{
-
-    self = (TabBar*)[super initWithWebView:theWebView];
-    if(self)
-    {
-        tabBarItems = [[NSMutableDictionary alloc] initWithCapacity:5];
-        
-        // -----------------------------------------------------------------------
-        // This code block is the same for both the navigation and tab bar plugin!
-        // -----------------------------------------------------------------------
-        
-        // The original web view frame must be retrieved here. On iPhone, it would be 0,0,320,460 for example. Since
-        // Cordova seems to initialize plugins on the first call, there is a plugin method init() that has to be called
-        // in order to make Cordova call *this* method. If someone forgets the init() call and uses the navigation bar
-        // and tab bar plugins together, these values won't be the original web view frame and layout will be wrong.
-        originalWebViewFrame = theWebView.frame;
-        UIApplication *app = [UIApplication sharedApplication];
-        
-        UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
-        switch (orientation)
-        {
-            case UIInterfaceOrientationPortrait:
-            case UIInterfaceOrientationPortraitUpsideDown:
-                break;
-            case UIInterfaceOrientationLandscapeLeft:
-            case UIInterfaceOrientationLandscapeRight:
-            {
-                float statusBarHeight = 0;
-                if(!app.statusBarHidden)
-                    statusBarHeight = MIN(app.statusBarFrame.size.width, app.statusBarFrame.size.height);
-                
-                originalWebViewFrame = CGRectMake(originalWebViewFrame.origin.y,
-                                                  originalWebViewFrame.origin.x,
-                                                  originalWebViewFrame.size.height + statusBarHeight,
-                                                  originalWebViewFrame.size.width - statusBarHeight);
-                break;
-            }
-            default:
-                NSLog(@"Unknown orientation: %d", orientation);
-                break;
-        }
-
-        navBarHeight = 64.0f;
-        
-        //navBarHeight = 64.0f;
-        tabBarHeight = 49.0f;
-        // -----------------------------------------------------------------------
-        
-        tabBarAtBottom = true;
+- (void) pluginInitialize {
+    
+    UIWebView *uiwebview = nil;
+    if ([self.webView isKindOfClass:[UIWebView class]]) {
+        uiwebview = ((UIWebView*)self.webView);
     }
-    return self;
+    tabBarItems = [[NSMutableDictionary alloc] initWithCapacity:5];
+    
+    // -----------------------------------------------------------------------
+    // This code block is the same for both the navigation and tab bar plugin!
+    // -----------------------------------------------------------------------
+    
+    // The original web view frame must be retrieved here. On iPhone, it would be 0,0,320,460 for example. Since
+    // Cordova seems to initialize plugins on the first call, there is a plugin method init() that has to be called
+    // in order to make Cordova call *this* method. If someone forgets the init() call and uses the navigation bar
+    // and tab bar plugins together, these values won't be the original web view frame and layout will be wrong.
+    originalWebViewFrame = uiwebview.frame;
+    UIApplication *app = [UIApplication sharedApplication];
+    
+    UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+    switch (orientation)
+    {
+        case UIInterfaceOrientationPortrait:
+        case UIInterfaceOrientationPortraitUpsideDown:
+            break;
+        case UIInterfaceOrientationLandscapeLeft:
+        case UIInterfaceOrientationLandscapeRight:
+        {
+            float statusBarHeight = 0;
+            if(!app.statusBarHidden)
+                statusBarHeight = MIN(app.statusBarFrame.size.width, app.statusBarFrame.size.height);
+            
+            originalWebViewFrame = CGRectMake(originalWebViewFrame.origin.y,
+                                              originalWebViewFrame.origin.x,
+                                              originalWebViewFrame.size.height + statusBarHeight,
+                                              originalWebViewFrame.size.width - statusBarHeight);
+            break;
+        }
+        default:
+            NSLog(@"Unknown orientation: %d", orientation);
+            break;
+    }
+    
+    navBarHeight = 64.0f;
+    
+    //navBarHeight = 64.0f;
+    tabBarHeight = 49.0f;
+    // -----------------------------------------------------------------------
+    
+    tabBarAtBottom = true;
+    
 }
 
 -(void)correctWebViewFrame
@@ -117,14 +113,14 @@
     
     if(navBarShown)
         //top += navBarHeight;
-    
-    if(tabBarShown)
-    {
-        if(tabBarAtBottom)
-            bottom -= tabBarHeight;
-        else
-            top += tabBarHeight;
-    }
+        
+        if(tabBarShown)
+        {
+            if(tabBarAtBottom)
+                bottom -= tabBarHeight;
+            else
+                top += tabBarHeight;
+        }
     
     CGRect webViewFrame = CGRectMake(left, top, right - left, bottom - top);
     
@@ -170,8 +166,8 @@
     tabBar.barStyle = UIBarStyleDefault;
     
     //[tabBar setBarTintColor:[UIColor colorWithRed:218.0/255.0 green:33.0/255.0 blue:39.0/255.0 alpha:1.0]];
-         [tabBar setTintColor:[UIColor colorWithRed:218.0/255.0 green:33.0/255.0 blue:39.0/255.0 alpha:1.0]];
- //[tabBar setBackgroundColor:[UIColor colorWithRed:218.0/255.0 green:33.0/255.0 blue:39.0/255.0 alpha:1.0]];
+    [tabBar setTintColor:[UIColor colorWithRed:218.0/255.0 green:33.0/255.0 blue:39.0/255.0 alpha:1.0]];
+    //[tabBar setBackgroundColor:[UIColor colorWithRed:218.0/255.0 green:33.0/255.0 blue:39.0/255.0 alpha:1.0]];
     
     
     [tabBar setSelectedImageTintColor:[UIColor redColor]];
@@ -407,7 +403,7 @@
     
     //BOOL animateItems = YES;
     //if(options && [options objectForKey:@"animate"])
-        //animateItems = [(NSString*)[options objectForKey:@"animate"] boolValue];
+    //animateItems = [(NSString*)[options objectForKey:@"animate"] boolValue];
     [tabBar setItems:items animated:NO];
 }
 
