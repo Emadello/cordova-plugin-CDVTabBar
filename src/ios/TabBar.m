@@ -18,6 +18,8 @@
 
 - (void) pluginInitialize {
     
+    [[NSNotificationCenter defaultCenter] addObserver:self  selector:@selector(orientationChanged:)    name:UIDeviceOrientationDidChangeNotification  object:nil];
+    
     UIWebView *uiwebview = nil;
     if ([self.webView isKindOfClass:[UIWebView class]]) {
         uiwebview = ((UIWebView*)self.webView);
@@ -55,7 +57,7 @@
             break;
         }
         default:
-            NSLog(@"Unknown orientation: %d", orientation);
+            NSLog(@"Unknown orientation: %ld", (long)orientation);
             break;
     }
     
@@ -75,24 +77,17 @@
         return;
     
     const bool tabBarShown = !tabBar.hidden;
-    bool navBarShown = false;
-    
-    UIView *parent = [tabBar superview];
-    for(UIView *view in parent.subviews)
-        if([view isMemberOfClass:[UINavigationBar class]])
-        {
-            navBarShown = !view.hidden;
-            break;
-        }
     
     // -----------------------------------------------------------------------------
     // IMPORTANT: Below code is the same in both the navigation and tab bar plugins!
     // -----------------------------------------------------------------------------
+    CGRect screenBound = [[UIScreen mainScreen] bounds];
+    CGSize screenSize = screenBound.size;
     
     CGFloat left = originalWebViewFrame.origin.x;
-    CGFloat right = left + originalWebViewFrame.size.width;
+    CGFloat right = screenSize.width;
     CGFloat top = originalWebViewFrame.origin.y;
-    CGFloat bottom = top + originalWebViewFrame.size.height;
+    CGFloat bottom = screenSize.height;
     
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
     switch (orientation)
@@ -103,18 +98,17 @@
             break;
         case UIInterfaceOrientationLandscapeLeft:
         case UIInterfaceOrientationLandscapeRight:
-            right = left + originalWebViewFrame.size.height + 20.0f;
-            bottom = top + originalWebViewFrame.size.width - 20.0f;
+            right = screenSize.height;
+            bottom = top + originalWebViewFrame.size.width;
             break;
         default:
-            NSLog(@"Unknown orientation: %d", orientation);
+            NSLog(@"Unknown orientation: %ld", (long)orientation);
             break;
     }
     
-    if(navBarShown)
-        //top += navBarHeight;
+    //if(navBarShown) top += navBarHeight;
         
-        if(tabBarShown)
+    if(tabBarShown)
         {
             if(tabBarAtBottom)
                 bottom -= tabBarHeight;
@@ -126,10 +120,6 @@
     
     [self.webView setFrame:webViewFrame];
     
-    // -----------------------------------------------------------------------------
-    
-    // NOTE: Following part again for tab bar plugin only
-    
     if(tabBarShown)
     {
         if(tabBarAtBottom)
@@ -137,6 +127,8 @@
         else
             [tabBar setFrame:CGRectMake(left, originalWebViewFrame.origin.y, right - left, tabBarHeight)];
     }
+    
+    NSLog(@"CorrectView TabBar");
 }
 
 - (UIColor*)colorStringToColor:(NSString*)colorStr
@@ -170,7 +162,8 @@
     //[tabBar setBackgroundColor:[UIColor colorWithRed:218.0/255.0 green:33.0/255.0 blue:39.0/255.0 alpha:1.0]];
     
     
-    [tabBar setSelectedImageTintColor:[UIColor redColor]];
+    //[tabBar setSelectedImageTintColor:[UIColor redColor]];
+    [tabBar setTintColor:[UIColor redColor]];
     
     self.webView.superview.autoresizesSubviews = YES;
     
@@ -232,6 +225,10 @@
  */
 - (void)resize:(CDVInvokedUrlCommand*)command
 {
+    [self correctWebViewFrame];
+}
+
+- (void)orientationChanged:(NSNotification *)notification{
     [self correctWebViewFrame];
 }
 
@@ -384,7 +381,8 @@
     if (!tabBar)
         [self create:nil];
     NSLog(@"Arguments: %@", [command argumentAtIndex:0]);
-    int i, count = [[command argumentAtIndex:0] count];
+    int i;
+    int count = (int)[[command argumentAtIndex:0] count];
     NSLog(@"arguments: %d", count);
     //NSDictionary *options = nil;
     
@@ -434,7 +432,7 @@
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item
 {
-    NSString * jsCallBack = [NSString stringWithFormat:@"tabbar.onItemSelected(%d);", item.tag];
+    NSString * jsCallBack = [NSString stringWithFormat:@"tabbar.onItemSelected(%ld);", (long)item.tag];
     NSLog(@"Item Selected with tab: %ld", (long)item.tag);
     [self.commandDelegate evalJs:jsCallBack];
     //[self writeJavascript:jsCallBack];
