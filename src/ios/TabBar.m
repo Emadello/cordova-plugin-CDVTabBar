@@ -18,8 +18,6 @@
 
 - (void) pluginInitialize {
     
-    [[NSNotificationCenter defaultCenter] addObserver:self  selector:@selector(orientationChanged:)    name:UIDeviceOrientationDidChangeNotification  object:nil];
-    
     UIWebView *uiwebview = nil;
     if ([self.webView isKindOfClass:[UIWebView class]]) {
         uiwebview = ((UIWebView*)self.webView);
@@ -52,16 +50,16 @@
             
             originalWebViewFrame = CGRectMake(originalWebViewFrame.origin.y,
                                               originalWebViewFrame.origin.x,
-                                              originalWebViewFrame.size.height + statusBarHeight,
-                                              originalWebViewFrame.size.width - statusBarHeight);
+                                              originalWebViewFrame.size.height,
+                                              originalWebViewFrame.size.width);
             break;
         }
         default:
-            NSLog(@"Unknown orientation: %ld", (long)orientation);
+            NSLog(@"Unknown orientation: %d", orientation);
             break;
     }
     
-    navBarHeight = 64.0f;
+    navBarHeight = 44.0f;
     
     //navBarHeight = 64.0f;
     tabBarHeight = 49.0f;
@@ -77,17 +75,24 @@
         return;
     
     const bool tabBarShown = !tabBar.hidden;
+    bool navBarShown = false;
+    
+    UIView *parent = [tabBar superview];
+    for(UIView *view in parent.subviews)
+        if([view isMemberOfClass:[UINavigationBar class]])
+        {
+            navBarShown = !view.hidden;
+            break;
+        }
     
     // -----------------------------------------------------------------------------
     // IMPORTANT: Below code is the same in both the navigation and tab bar plugins!
     // -----------------------------------------------------------------------------
-    CGRect screenBound = [[UIScreen mainScreen] bounds];
-    CGSize screenSize = screenBound.size;
     
     CGFloat left = originalWebViewFrame.origin.x;
-    CGFloat right = screenSize.width;
+    CGFloat right = left + originalWebViewFrame.size.width;
     CGFloat top = originalWebViewFrame.origin.y;
-    CGFloat bottom = screenSize.height;
+    CGFloat bottom = top + originalWebViewFrame.size.height;
     
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
     switch (orientation)
@@ -98,17 +103,18 @@
             break;
         case UIInterfaceOrientationLandscapeLeft:
         case UIInterfaceOrientationLandscapeRight:
-            right = screenSize.height;
-            bottom = top + originalWebViewFrame.size.width;
+            right = left + originalWebViewFrame.size.height + 20.0f;
+            bottom = top + originalWebViewFrame.size.width - 20.0f;
             break;
         default:
-            NSLog(@"Unknown orientation: %ld", (long)orientation);
+            NSLog(@"Unknown orientation: %d", orientation);
             break;
     }
     
-    //if(navBarShown) top += navBarHeight;
+    if(navBarShown)
+        //top += navBarHeight;
         
-    if(tabBarShown)
+        if(tabBarShown)
         {
             if(tabBarAtBottom)
                 bottom -= tabBarHeight;
@@ -120,15 +126,25 @@
     
     [self.webView setFrame:webViewFrame];
     
+    // -----------------------------------------------------------------------------
+    CGFloat iphonexfix = 0.0f;
+    // NOTE: Following part again for tab bar plugin only
+    if (@available(iOS 11.0, *)) {
+        if ([[self webView] superview].safeAreaInsets.bottom > 0) iphonexfix = 1.0f;
+        else iphonexfix = 0.0f;
+    }
+    
+    
     if(tabBarShown)
     {
         if(tabBarAtBottom)
-            [tabBar setFrame:CGRectMake(left, bottom, right - left, tabBarHeight)];
+            [tabBar setFrame:CGRectMake(left, originalWebViewFrame.origin.y + originalWebViewFrame.size.height - tabBarHeight - iphonexfix, right - left, tabBarHeight)];
+        
         else
             [tabBar setFrame:CGRectMake(left, originalWebViewFrame.origin.y, right - left, tabBarHeight)];
+        
+        NSLog(@"Screen height: %f", webViewFrame.size.height);
     }
-    
-    NSLog(@"CorrectView TabBar");
 }
 
 - (UIColor*)colorStringToColor:(NSString*)colorStr
@@ -162,8 +178,7 @@
     //[tabBar setBackgroundColor:[UIColor colorWithRed:218.0/255.0 green:33.0/255.0 blue:39.0/255.0 alpha:1.0]];
     
     
-    //[tabBar setSelectedImageTintColor:[UIColor redColor]];
-    [tabBar setTintColor:[UIColor redColor]];
+    [tabBar setSelectedImageTintColor:[UIColor redColor]];
     
     self.webView.superview.autoresizesSubviews = YES;
     
@@ -225,10 +240,6 @@
  */
 - (void)resize:(CDVInvokedUrlCommand*)command
 {
-    [self correctWebViewFrame];
-}
-
-- (void)orientationChanged:(NSNotification *)notification{
     [self correctWebViewFrame];
 }
 
@@ -381,8 +392,7 @@
     if (!tabBar)
         [self create:nil];
     NSLog(@"Arguments: %@", [command argumentAtIndex:0]);
-    int i;
-    int count = (int)[[command argumentAtIndex:0] count];
+    int i, count = [[command argumentAtIndex:0] count];
     NSLog(@"arguments: %d", count);
     //NSDictionary *options = nil;
     
@@ -432,10 +442,17 @@
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item
 {
-    NSString * jsCallBack = [NSString stringWithFormat:@"tabbar.onItemSelected(%ld);", (long)item.tag];
+    NSString * jsCallBack = [NSString stringWithFormat:@"tabbar.onItemSelected(%d);", item.tag];
     NSLog(@"Item Selected with tab: %ld", (long)item.tag);
+    
+    UIWebView *uiwebview = nil;
+    if ([self.webView isKindOfClass:[UIWebView class]]) {
+        uiwebview = ((UIWebView*)self.webView);
+    }
+    //[uiwebview stringByEvaluatingJavaScriptFromString:jsCallBack];
+    
     [self.commandDelegate evalJs:jsCallBack];
-    //[self writeJavascript:jsCallBack];
+    
 }
 
 @end
@@ -454,3 +471,4 @@
 }
 
 @end
+
