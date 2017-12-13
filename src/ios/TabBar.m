@@ -250,23 +250,47 @@
  * @param options unused
  */
 - (void)hide:(CDVInvokedUrlCommand*)command
-{
-    
-    if (tabBar.hidden) return;
-    NSLog(@"HIDE TABBAR");
-    if (!tabBar)
+    {
+        
+        if (tabBar.hidden) return;
+        if (!tabBar) return;
+        NSLog(@"HIDE TABBAR");
+        if (!tabBar)
         [self create:nil];
-    
-    [UIView animateWithDuration:0.5 animations:^() {
+        
         tabBar.alpha = 0;
         tabBar.hidden = YES;
-        
-    } completion:^(BOOL finished) {
-        
-        [self correctWebViewFrame];
-    }];
+        [self tabBarhided];
+    }
     
-}
+-(void)tabBarhided
+    {
+        CGFloat left = self.webView.frame.origin.x;
+        CGFloat right = left + self.webView.frame.size.width;
+        CGFloat top = self.webView.frame.origin.y;
+        CGFloat bottom = top + self.webView.frame.size.height;
+        
+        UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+        switch (orientation)
+        {
+            case UIInterfaceOrientationPortrait:
+            case UIInterfaceOrientationPortraitUpsideDown:
+            // No need to change width/height from original frame
+            break;
+            case UIInterfaceOrientationLandscapeLeft:
+            case UIInterfaceOrientationLandscapeRight:
+            right = left + self.webView.frame.size.height + 20.0f;
+            bottom = top + self.webView.frame.size.width - 20.0f;
+            break;
+            default:
+            NSLog(@"Unknown orientation: %d", orientation);
+            break;
+        }
+        
+        CGRect webViewFrame = CGRectMake(left, top, right - left, bottom - top + tabBarHeight);
+        
+        [self.webView setFrame:webViewFrame];
+    }
 
 /**
  * Create a new tab bar item for use on a previously created tab bar.  Use ::showTabBarItems to show the new item on the tab bar.
