@@ -33,39 +33,40 @@
     // in order to make Cordova call *this* method. If someone forgets the init() call and uses the navigation bar
     // and tab bar plugins together, these values won't be the original web view frame and layout will be wrong.
     originalWebViewFrame = uiwebview.frame;
-    UIApplication *app = [UIApplication sharedApplication];
     
-    UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
-    switch (orientation)
-    {
-        case UIInterfaceOrientationPortrait:
-        case UIInterfaceOrientationPortraitUpsideDown:
-            break;
-        case UIInterfaceOrientationLandscapeLeft:
-        case UIInterfaceOrientationLandscapeRight:
-        {
-            float statusBarHeight = 0;
-            if(!app.statusBarHidden)
-                statusBarHeight = MIN(app.statusBarFrame.size.width, app.statusBarFrame.size.height);
-            
-            originalWebViewFrame = CGRectMake(originalWebViewFrame.origin.y,
-                                              originalWebViewFrame.origin.x,
-                                              originalWebViewFrame.size.height,
-                                              originalWebViewFrame.size.width);
-            break;
-        }
-        default:
-            NSLog(@"Unknown orientation: %d", orientation);
-            break;
-    }
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(orientationChanged:)
+     name:UIDeviceOrientationDidChangeNotification
+     object:[UIDevice currentDevice]];
     
     navBarHeight = 44.0f;
-    
-    //navBarHeight = 64.0f;
     tabBarHeight = 49.0f;
-    // -----------------------------------------------------------------------
-    
     tabBarAtBottom = true;
+    
+}
+
+- (void) orientationChanged:(NSNotification *)note
+{
+    UIDevice * device = note.object;
+    switch(device.orientation)
+    {
+        case UIDeviceOrientationPortrait:
+            NSLog(@"NavBar Orientation Changed to portrait");
+            [self correctWebViewFrame];
+            break;
+            
+        case UIDeviceOrientationPortraitUpsideDown:
+            NSLog(@"NavBar Orientation Changed to upsidedown");
+            [self correctWebViewFrame];
+            break;
+            
+        default:
+            NSLog(@"NavBar Orientation Changed to landscape");
+            float statusBarHeight = 20.0f;
+            [self correctWebViewFrame];
+            break;
+    };
     
 }
 
@@ -89,30 +90,31 @@
     // IMPORTANT: Below code is the same in both the navigation and tab bar plugins!
     // -----------------------------------------------------------------------------
     
-    CGFloat left = originalWebViewFrame.origin.x;
-    CGFloat right = left + originalWebViewFrame.size.width;
-    CGFloat top = originalWebViewFrame.origin.y;
-    CGFloat bottom = top + originalWebViewFrame.size.height;
     
-    UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
-    switch (orientation)
-    {
-        case UIInterfaceOrientationPortrait:
-        case UIInterfaceOrientationPortraitUpsideDown:
-            // No need to change width/height from original frame
-            break;
-        case UIInterfaceOrientationLandscapeLeft:
-        case UIInterfaceOrientationLandscapeRight:
-            right = left + originalWebViewFrame.size.height + 20.0f;
-            bottom = top + originalWebViewFrame.size.width - 20.0f;
-            break;
-        default:
-            NSLog(@"Unknown orientation: %d", orientation);
-            break;
+    
+    currentDeviceOrientation = [[UIDevice currentDevice] orientation];
+    
+    BOOL isLandscape = UIDeviceOrientationIsLandscape(currentDeviceOrientation);
+    BOOL isPortrait = UIDeviceOrientationIsPortrait(currentDeviceOrientation);
+    
+    CGFloat left, right, top, bottom;
+    
+    left = [UIScreen mainScreen].bounds.origin.x;
+    right = left + [UIScreen mainScreen].bounds.size.width;
+    
+    if (@available(iOS 11.0, *)) {
+        top = [UIScreen mainScreen].bounds.origin.y + [[self webView] superview].safeAreaInsets.top;
+        if (isPortrait) bottom = top + [UIScreen mainScreen].bounds.size.height - [[self webView] superview].safeAreaInsets.top;
+        else bottom = top + [UIScreen mainScreen].bounds.size.height;
+    } else {
+        top = [UIScreen mainScreen].bounds.origin.y;
     }
     
+    if (isLandscape) NSLog(@"TabBar Current Orientation: Landscape");
+    if (isPortrait) NSLog(@"TabBar Current Orientation: Portrait");
+    
     if(navBarShown)
-        //top += navBarHeight;
+        top += navBarHeight;
         
         if(tabBarShown)
         {
@@ -122,7 +124,13 @@
                 top += tabBarHeight;
         }
     
-    CGRect webViewFrame = CGRectMake(left, top, right - left, bottom - top);
+    CGRect webViewFrame;
+    
+    if (@available(iOS 11.0, *)) {
+        webViewFrame = CGRectMake(left, top, right - left, bottom - top - [[self webView] superview].safeAreaInsets.bottom);
+    } else {
+        webViewFrame = CGRectMake(left, top, right - left, bottom - top);
+    }
     
     [self.webView setFrame:webViewFrame];
     
@@ -130,7 +138,7 @@
     CGFloat iphonexfix = 0.0f;
     // NOTE: Following part again for tab bar plugin only
     if (@available(iOS 11.0, *)) {
-        if ([[self webView] superview].safeAreaInsets.bottom > 0) iphonexfix = 1.0f;
+        if ([[self webView] superview].safeAreaInsets.bottom > 0) iphonexfix = 35.0f;
         else iphonexfix = 0.0f;
     }
     
@@ -138,11 +146,11 @@
     if(tabBarShown)
     {
         if(tabBarAtBottom)
-            [tabBar setFrame:CGRectMake(left, originalWebViewFrame.origin.y + originalWebViewFrame.size.height - tabBarHeight - iphonexfix, right - left, tabBarHeight)];
+            [tabBar setFrame:CGRectMake(left, [UIScreen mainScreen].bounds.origin.y + [UIScreen mainScreen].bounds.size.height - tabBarHeight - iphonexfix, right - left, tabBarHeight)];
         
         else
-            [tabBar setFrame:CGRectMake(left, originalWebViewFrame.origin.y, right - left, tabBarHeight)];
-        
+            [tabBar setFrame:CGRectMake(left, [UIScreen mainScreen].bounds.origin.y, right - left, tabBarHeight)];
+
         NSLog(@"Screen height: %f", webViewFrame.size.height);
     }
 }
@@ -250,47 +258,23 @@
  * @param options unused
  */
 - (void)hide:(CDVInvokedUrlCommand*)command
-    {
-        
-        if (tabBar.hidden) return;
-        if (!tabBar) return;
-        NSLog(@"HIDE TABBAR");
-        if (!tabBar)
+{
+    
+    if (tabBar.hidden) return;
+    NSLog(@"HIDE TABBAR");
+    if (!tabBar)
         [self create:nil];
-        
+    
+    [UIView animateWithDuration:0.5 animations:^() {
         tabBar.alpha = 0;
         tabBar.hidden = YES;
-        [self tabBarhided];
-    }
+        
+    } completion:^(BOOL finished) {
+        
+        [self correctWebViewFrame];
+    }];
     
--(void)tabBarhided
-    {
-        CGFloat left = self.webView.frame.origin.x;
-        CGFloat right = left + self.webView.frame.size.width;
-        CGFloat top = self.webView.frame.origin.y;
-        CGFloat bottom = top + self.webView.frame.size.height;
-        
-        UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
-        switch (orientation)
-        {
-            case UIInterfaceOrientationPortrait:
-            case UIInterfaceOrientationPortraitUpsideDown:
-            // No need to change width/height from original frame
-            break;
-            case UIInterfaceOrientationLandscapeLeft:
-            case UIInterfaceOrientationLandscapeRight:
-            right = left + self.webView.frame.size.height + 20.0f;
-            bottom = top + self.webView.frame.size.width - 20.0f;
-            break;
-            default:
-            NSLog(@"Unknown orientation: %d", orientation);
-            break;
-        }
-        
-        CGRect webViewFrame = CGRectMake(left, top, right - left, bottom - top + tabBarHeight);
-        
-        [self.webView setFrame:webViewFrame];
-    }
+}
 
 /**
  * Create a new tab bar item for use on a previously created tab bar.  Use ::showTabBarItems to show the new item on the tab bar.

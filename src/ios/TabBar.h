@@ -21,6 +21,7 @@
     
     CGFloat navBarHeight;
     CGFloat tabBarHeight;
+    UIDeviceOrientation currentDeviceOrientation;
     bool tabBarAtBottom;
 }
 
