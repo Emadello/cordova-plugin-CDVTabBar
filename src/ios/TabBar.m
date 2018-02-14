@@ -73,18 +73,18 @@
 -(void)correctWebViewFrame
 {
     if(!tabBar)
-        return;
+    return;
     
     const bool tabBarShown = !tabBar.hidden;
     bool navBarShown = false;
     
     UIView *parent = [tabBar superview];
     for(UIView *view in parent.subviews)
-        if([view isMemberOfClass:[UINavigationBar class]])
-        {
-            navBarShown = !view.hidden;
-            break;
-        }
+    if([view isMemberOfClass:[UINavigationBar class]])
+    {
+        navBarShown = !view.hidden;
+        break;
+    }
     
     // -----------------------------------------------------------------------------
     // IMPORTANT: Below code is the same in both the navigation and tab bar plugins!
@@ -107,22 +107,23 @@
         if (isPortrait) bottom = top + [UIScreen mainScreen].bounds.size.height - [[self webView] superview].safeAreaInsets.top;
         else bottom = top + [UIScreen mainScreen].bounds.size.height;
     } else {
-        top = [UIScreen mainScreen].bounds.origin.y;
+        top = [UIScreen mainScreen].bounds.origin.y + 20.0f;
+        bottom = top + [UIScreen mainScreen].bounds.size.height - 20.0f;
     }
     
     if (isLandscape) NSLog(@"TabBar Current Orientation: Landscape");
     if (isPortrait) NSLog(@"TabBar Current Orientation: Portrait");
     
     if(navBarShown)
-        top += navBarHeight;
-        
-        if(tabBarShown)
-        {
-            if(tabBarAtBottom)
-                bottom -= tabBarHeight;
-            else
-                top += tabBarHeight;
-        }
+    top += navBarHeight;
+    
+    if(tabBarShown)
+    {
+        if(tabBarAtBottom)
+        bottom -= tabBarHeight;
+        else
+        top += tabBarHeight;
+    }
     
     CGRect webViewFrame;
     
@@ -146,11 +147,11 @@
     if(tabBarShown)
     {
         if(tabBarAtBottom)
-            [tabBar setFrame:CGRectMake(left, [UIScreen mainScreen].bounds.origin.y + [UIScreen mainScreen].bounds.size.height - tabBarHeight - iphonexfix, right - left, tabBarHeight)];
+        [tabBar setFrame:CGRectMake(left, [UIScreen mainScreen].bounds.origin.y + [UIScreen mainScreen].bounds.size.height - tabBarHeight - iphonexfix, right - left, tabBarHeight)];
         
         else
-            [tabBar setFrame:CGRectMake(left, [UIScreen mainScreen].bounds.origin.y, right - left, tabBarHeight)];
-
+        [tabBar setFrame:CGRectMake(left, [UIScreen mainScreen].bounds.origin.y, right - left, tabBarHeight)];
+        
         NSLog(@"Screen height: %f", webViewFrame.size.height);
     }
 }
