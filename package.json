@@ -3,7 +3,7 @@
   "version": "2.1.4",
   "description": "Add Native TabBar to your Cordova Applications",
   "cordova": {
-    "id": "cordova-plugin-CDVTabBar",
+    "id": "cordova-plugin-cdvtabbar",
     "platforms": [
       "ios"
     ]
